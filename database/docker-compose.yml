@@ -1,0 +1,26 @@
+version: "3"
+services:
+  db:
+    container_name: rustacean_radar_pgsql
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: ${PGSQL_NAME}
+      POSTGRES_USER: ${PGSQL_USER}
+      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
+
+    ports:
+      - "${DOCKER_PGSQL_PORT}:5432"
+
+  flyway:
+    container_name: rustacean_radar_flyway
+    image: flyway/flyway:latest-alpine
+    command: migrate
+    environment:
+      FLYWAY_URL: "jdbc:postgresql://db/${PGSQL_NAME}"
+      FLYWAY_USER: ${PGSQL_USER}
+      FLYWAY_PASSWORD: ${PGSQL_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 8 #secs waiting for PostgreSQL
+    volumes:
+      - ./migrations:/flyway/sql
+    depends_on:
+      - db
