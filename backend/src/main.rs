@@ -6,8 +6,14 @@ struct HelloWorld {
     message: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct SearchRequest {
+    search: String,
+}
+
 #[get("/")]
-async fn index() -> Result<HttpResponse, Error> {
+async fn index(info: web::Query<SearchRequest>) -> Result<HttpResponse, Error> {
+    println!("{:?}", info);
     let message = HelloWorld { message: "Hello OminiStack".to_string() };
     Ok(HttpResponse::Ok().json(message))
 }
