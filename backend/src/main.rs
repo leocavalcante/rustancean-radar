@@ -1,11 +1,17 @@
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 extern crate reqwest;
 
 use actix_web::{App, error, HttpResponse, HttpServer, post, web};
 use actix_web::dev::Service;
+use diesel::{Connection, PgConnection};
 use reqwest::header::USER_AGENT;
 use serde::Serialize;
 
-mod domain;
+use crate::models::Dev;
+
+mod models;
 mod application;
 
 #[derive(Serialize)]
@@ -31,8 +37,15 @@ async fn sign_dev(info: web::Json<application::DevRequest>) -> Result<HttpRespon
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+
     HttpServer::new(|| App::new().service(sign_dev))
         .bind("127.0.0.1:3333")?
         .run()
         .await
+}
+
+fn conn() -> PgConnection {
+    let db_url = std::env::var("PGSQL_URL").expect("Missing PGSQL_URL at .env file");
+    PgConnection::establish(&db_url).expect("Could not connect to Postgres")
 }
