@@ -1,11 +1,15 @@
-#[macro_use]
-extern crate actix_web;
+use actix_web::{App, Error, get, HttpResponse, HttpServer, Responder, web};
+use serde::{Deserialize, Serialize};
 
-use actix_web::{App, HttpServer, Responder};
+#[derive(Serialize)]
+struct HelloWorld {
+    message: String,
+}
 
 #[get("/")]
-async fn index() -> impl Responder {
-    "Hello World"
+async fn index() -> Result<HttpResponse, Error> {
+    let message = HelloWorld { message: "Hello OminiStack".to_string() };
+    Ok(HttpResponse::Ok().json(message))
 }
 
 #[actix_rt::main]
