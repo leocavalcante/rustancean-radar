@@ -1,4 +1,4 @@
-use actix_web::{App, Error, get, HttpResponse, HttpServer, Responder, web};
+use actix_web::{App, delete, Error, HttpResponse, HttpServer, Responder, web};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
@@ -7,12 +7,12 @@ struct HelloWorld {
 }
 
 #[derive(Debug, Deserialize)]
-struct SearchRequest {
-    search: String,
+struct DeleteRequest {
+    id: i32,
 }
 
-#[get("/")]
-async fn index(info: web::Query<SearchRequest>) -> Result<HttpResponse, Error> {
+#[delete("/{id}")]
+async fn index(info: web::Path<DeleteRequest>) -> Result<HttpResponse, Error> {
     println!("{:?}", info);
     let message = HelloWorld { message: "Hello OminiStack".to_string() };
     Ok(HttpResponse::Ok().json(message))
