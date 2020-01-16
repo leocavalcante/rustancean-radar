@@ -1,7 +1,8 @@
 use actix_web::{Error, get, HttpResponse, post};
 use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
 use actix_web::web::Json;
-use diesel::RunQueryDsl;
+use diesel::{ExpressionMethods, RunQueryDsl};
+use diesel::query_dsl::filter_dsl::FilterDsl;
 use reqwest::header::USER_AGENT;
 
 use crate::application::{DevRequest, GitHubUser};
@@ -19,6 +20,16 @@ pub async fn index() -> Result<HttpResponse, Error> {
 
 #[post("/devs")]
 pub async fn store(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
+    use schema::devs::dsl::github;
+
+    let conn = establish_connection();
+
+    if let Ok(dev) = schema::devs::table
+        .filter(github.eq(&info.github))
+        .first::<Dev>(&conn) {
+        return Ok(HttpResponse::Ok().json(&dev));
+    }
+
     let github_user: GitHubUser = reqwest::Client::new()
         .get(format!("https://api.github.com/users/{}", info.github).as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
@@ -37,8 +48,6 @@ pub async fn store(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
         lat: &info.lat,
         lng: &info.lng,
     };
-
-    let conn = establish_connection();
 
     let dev = diesel::insert_into(schema::devs::table)
         .values(&new_dev)
