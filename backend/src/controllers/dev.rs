@@ -1,4 +1,4 @@
-use actix_web::{Error, HttpResponse, post};
+use actix_web::{Error, get, HttpResponse, post};
 use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
 use actix_web::web::Json;
 use diesel::RunQueryDsl;
@@ -8,6 +8,14 @@ use crate::application::{DevRequest, GitHubUser};
 use crate::establish_connection;
 use crate::models::{Dev, NewDev};
 use crate::schema;
+
+#[get("/devs")]
+pub async fn index() -> Result<HttpResponse, Error> {
+    let conn = establish_connection();
+    let devs = schema::devs::table.load::<Dev>(&conn)
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(devs))
+}
 
 #[post("/devs")]
 pub async fn store(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
