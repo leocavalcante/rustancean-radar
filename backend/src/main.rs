@@ -1,51 +1,49 @@
 #[macro_use]
-extern crate diesel;
-extern crate dotenv;
-extern crate reqwest;
+extern crate actix_web;
 
-use actix_web::{App, error, HttpResponse, HttpServer, post, web};
-use actix_web::dev::Service;
-use diesel::{Connection, PgConnection};
+use actix_web::{App, Error, HttpResponse, HttpServer};
+use actix_web::error::ErrorBadRequest;
+use actix_web::web::Json;
+use diesel::RunQueryDsl;
 use reqwest::header::USER_AGENT;
-use serde::Serialize;
 
-use crate::models::Dev;
-
-mod models;
-mod application;
-
-#[derive(Serialize)]
-struct HelloWorld {
-    message: String,
-}
+use backend::application::{DevRequest, GitHubUser};
+use backend::establish_connection;
+use backend::models::{Dev, NewDev};
+use backend::schema::devs;
 
 #[post("/devs")]
-async fn sign_dev(info: web::Json<application::DevRequest>) -> Result<HttpResponse, error::Error> {
-    let github_user = reqwest::Client::new()
+async fn sign_dev(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
+    let github_user: GitHubUser = reqwest::Client::new()
         .get(format!("https://api.github.com/users/{}", info.github).as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
-        .send().await.map_err(error::ErrorBadRequest)?
-        .json::<application::GitHubUser>()
-        .await.map_err(error::ErrorBadRequest)?;
+        .send().await.map_err(ErrorBadRequest)?
+        .json::<GitHubUser>()
+        .await.map_err(ErrorBadRequest)?;
 
     let techs: Vec<&str> = info.techs.split(",").map(str::trim).collect();
 
-    println!("{:?}", techs);
-    let message = HelloWorld { message: "Hello OminiStack".to_string() };
-    Ok(HttpResponse::Ok().json(message))
+    let dev = NewDev {
+        github: info.github.as_str(),
+        name: github_user.name.as_str(),
+        avatar_url: github_user.avatar_url.as_str(),
+        bio: github_user.bio.as_str(),
+        techs,
+    };
+
+    let conn = establish_connection();
+
+    diesel::insert_into(devs::table)
+        .values(&dev)
+        .get_result::<Dev>(&conn);
+
+    Ok(HttpResponse::Ok().json(dev))
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    dotenv::dotenv().ok();
-
     HttpServer::new(|| App::new().service(sign_dev))
         .bind("127.0.0.1:3333")?
         .run()
         .await
-}
-
-fn conn() -> PgConnection {
-    let db_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL at .env file");
-    PgConnection::establish(&db_url).expect("Could not connect to Postgres")
 }

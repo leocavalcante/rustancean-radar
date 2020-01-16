@@ -1,7 +1,8 @@
-use diesel::{Insertable, Queryable};
+use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Insertable)]
-#[table_name = "devs"]
+use super::schema::devs;
+
+#[derive(Queryable)]
 pub struct Dev {
     id: i32,
     name: String,
@@ -9,4 +10,14 @@ pub struct Dev {
     bio: String,
     avatar_url: String,
     techs: Vec<String>,
+}
+
+#[derive(Insertable, Serialize, Deserialize)]
+#[table_name = "devs"]
+pub struct NewDev<'a> {
+    pub name: &'a str,
+    pub github: &'a str,
+    pub bio: &'a str,
+    pub avatar_url: &'a str,
+    pub techs: Vec<&'a str>,
 }
