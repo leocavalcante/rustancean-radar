@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct DevRequest {
@@ -13,4 +13,11 @@ pub struct GitHubUser {
     pub name: String,
     pub avatar_url: String,
     pub bio: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SearchQuery {
+    pub lat: f32,
+    pub lng: f32,
+    pub techs: String,
 }

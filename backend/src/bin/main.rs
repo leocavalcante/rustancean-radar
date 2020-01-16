@@ -6,7 +6,8 @@ use backend::controllers;
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new()
         .service(controllers::dev::store)
-        .service(controllers::dev::index))
+        .service(controllers::dev::index)
+        .service(controllers::search::search))
         .bind("127.0.0.1:3333")?
         .run()
         .await
