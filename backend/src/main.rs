@@ -2,8 +2,9 @@
 extern crate actix_web;
 
 use actix_web::{App, Error, HttpResponse, HttpServer};
-use actix_web::error::ErrorBadRequest;
+use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
 use actix_web::web::Json;
+use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use reqwest::header::USER_AGENT;
 
@@ -23,21 +24,24 @@ async fn sign_dev(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
 
     let techs: Vec<&str> = info.techs.split(",").map(str::trim).collect();
 
-    let dev = NewDev {
+    let new_dev = NewDev {
         github: info.github.as_str(),
         name: github_user.name.as_str(),
         avatar_url: github_user.avatar_url.as_str(),
         bio: github_user.bio.as_str(),
         techs,
+        lat: &info.lat,
+        lng: &info.lng,
     };
 
     let conn = establish_connection();
 
-    diesel::insert_into(devs::table)
-        .values(&dev)
-        .get_result::<Dev>(&conn);
+    let dev = diesel::insert_into(devs::table)
+        .values(&new_dev)
+        .get_result::<Dev>(&conn)
+        .map_err(ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(dev))
+    Ok(HttpResponse::Ok().json(&dev))
 }
 
 #[actix_rt::main]

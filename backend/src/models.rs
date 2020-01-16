@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::schema::devs;
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize)]
 pub struct Dev {
     id: i32,
     name: String,
@@ -10,9 +10,11 @@ pub struct Dev {
     bio: String,
     avatar_url: String,
     techs: Vec<String>,
+    lat: f32,
+    lng: f32,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable)]
 #[table_name = "devs"]
 pub struct NewDev<'a> {
     pub name: &'a str,
@@ -20,4 +22,6 @@ pub struct NewDev<'a> {
     pub bio: &'a str,
     pub avatar_url: &'a str,
     pub techs: Vec<&'a str>,
+    pub lat: &'a f32,
+    pub lng: &'a f32,
 }

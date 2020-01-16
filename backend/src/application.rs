@@ -4,6 +4,8 @@ use serde::Deserialize;
 pub struct DevRequest {
     pub github: String,
     pub techs: String,
+    pub lat: f32,
+    pub lng: f32,
 }
 
 #[derive(Debug, Deserialize)]

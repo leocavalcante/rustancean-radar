@@ -6,5 +6,7 @@ table! {
         bio -> Text,
         avatar_url -> Varchar,
         techs -> Array<Text>,
+        lat -> Float4,
+        lng -> Float4,
     }
 }
