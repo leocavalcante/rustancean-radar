@@ -1,20 +1,16 @@
-#[macro_use]
-extern crate actix_web;
-
-use actix_web::{App, Error, HttpResponse, HttpServer};
+use actix_web::{Error, HttpResponse, post};
 use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
 use actix_web::web::Json;
-use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use reqwest::header::USER_AGENT;
 
-use backend::application::{DevRequest, GitHubUser};
-use backend::establish_connection;
-use backend::models::{Dev, NewDev};
-use backend::schema::devs;
+use crate::application::{DevRequest, GitHubUser};
+use crate::establish_connection;
+use crate::models::{Dev, NewDev};
+use crate::schema;
 
 #[post("/devs")]
-async fn sign_dev(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
+pub async fn store(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
     let github_user: GitHubUser = reqwest::Client::new()
         .get(format!("https://api.github.com/users/{}", info.github).as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
@@ -36,18 +32,10 @@ async fn sign_dev(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
 
     let conn = establish_connection();
 
-    let dev = diesel::insert_into(devs::table)
+    let dev = diesel::insert_into(schema::devs::table)
         .values(&new_dev)
         .get_result::<Dev>(&conn)
         .map_err(ErrorInternalServerError)?;
 
     Ok(HttpResponse::Ok().json(&dev))
-}
-
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(sign_dev))
-        .bind("127.0.0.1:3333")?
-        .run()
-        .await
 }

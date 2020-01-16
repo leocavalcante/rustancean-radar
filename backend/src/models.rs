@@ -1,6 +1,7 @@
-use serde::{Deserialize, Serialize};
+use diesel::{Insertable, Queryable};
+use serde::Serialize;
 
-use super::schema::devs;
+use crate::schema::devs;
 
 #[derive(Queryable, Serialize)]
 pub struct Dev {
