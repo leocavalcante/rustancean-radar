@@ -22,7 +22,7 @@ pub struct NewDev<'a> {
     pub github: &'a str,
     pub bio: &'a str,
     pub avatar_url: &'a str,
-    pub techs: Vec<&'a str>,
+    pub techs: Vec<String>,
     pub lat: &'a f32,
     pub lng: &'a f32,
 }

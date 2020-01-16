@@ -19,34 +19,34 @@ pub async fn index() -> Result<HttpResponse, Error> {
 }
 
 #[post("/devs")]
-pub async fn store(info: Json<DevRequest>) -> Result<HttpResponse, Error> {
+pub async fn store(input: Json<DevRequest>) -> Result<HttpResponse, Error> {
     use schema::devs::dsl::github;
 
     let conn = establish_connection();
 
     if let Ok(dev) = schema::devs::table
-        .filter(github.eq(&info.github))
+        .filter(github.eq(&input.github))
         .first::<Dev>(&conn) {
         return Ok(HttpResponse::Ok().json(&dev));
     }
 
     let github_user: GitHubUser = reqwest::Client::new()
-        .get(format!("https://api.github.com/users/{}", info.github).as_str())
+        .get(format!("https://api.github.com/users/{}", input.github).as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
         .send().await.map_err(ErrorBadRequest)?
         .json::<GitHubUser>()
         .await.map_err(ErrorBadRequest)?;
 
-    let techs: Vec<&str> = info.techs.split(",").map(str::trim).collect();
+    let techs = crate::utils::csv_to_vec(input.techs.to_string());
 
     let new_dev = NewDev {
-        github: info.github.as_str(),
+        github: input.github.as_str(),
         name: github_user.name.as_str(),
         avatar_url: github_user.avatar_url.as_str(),
         bio: github_user.bio.as_str(),
         techs,
-        lat: &info.lat,
-        lng: &info.lng,
+        lat: &input.lat,
+        lng: &input.lng,
     };
 
     let dev = diesel::insert_into(schema::devs::table)
