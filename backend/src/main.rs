@@ -46,6 +46,6 @@ async fn main() -> std::io::Result<()> {
 }
 
 fn conn() -> PgConnection {
-    let db_url = std::env::var("PGSQL_URL").expect("Missing PGSQL_URL at .env file");
+    let db_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL at .env file");
     PgConnection::establish(&db_url).expect("Could not connect to Postgres")
 }

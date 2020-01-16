@@ -1,0 +1,9 @@
+version: "3"
+services:
+  db:
+    container_name: rustancean_radar_pgsql
+    image: postgres:alpine
+    env_file:
+      - ./.env
+    ports:
+      - "${DOCKER_PGSQL_PORT}:5432"
