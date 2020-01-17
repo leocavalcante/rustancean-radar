@@ -31,11 +31,11 @@ impl Component for DevItem {
                     <img src=&self.props.dev.avatar_url alt=&self.props.dev.name />
                     <div class="user-info">
                         <strong>{&self.props.dev.name}</strong>
-                        <span>{self.props.dev.techs.join(", ")}</span>
+                        <span>{&self.props.dev.techs.join(", ")}</span>
                     </div>
                 </header>
                 <p>{&self.props.dev.bio}</p>
-                <a href=format!("https://github.com/{}", self.props.dev.github)>{"Acessar perfil no Github"}</a>
+                <a href=format!("https://github.com/{}", &self.props.dev.github)>{"Acessar perfil no Github"}</a>
             </li>
         }
     }
