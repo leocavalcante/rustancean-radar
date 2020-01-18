@@ -17,7 +17,7 @@
     <td><a href="https://www.rust-lang.org/" target="_blank">Rust</a></td>
     <td><a href="https://yew.rs/" target="_blank">Yew</a></td>
     <td><a href="https://tokio.rs/" target="_blank">Tokio</a></td>
-    <td><a href="https://actix.rs/" target="_blank">Actix</a></td>
+    <td><a href="https://github.com/seanmonstar/warp" target="_blank">Warp</a></td>
     <td><a href="http://diesel.rs/" target="_blank">Diesel</a></td>
     <td><a href="https://www.postgresql.org/" target="_blank">PostgreSQL</a></td>
   </tr>
