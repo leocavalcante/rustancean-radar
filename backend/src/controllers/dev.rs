@@ -1,25 +1,22 @@
-use actix_web::{Error, get, HttpResponse, post};
-use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
-use actix_web::web::Json;
 use diesel::{ExpressionMethods, RunQueryDsl};
 use diesel::query_dsl::filter_dsl::FilterDsl;
 use reqwest::header::USER_AGENT;
+use warp::Rejection;
 
 use crate::application::{DevRequest, GitHubUser};
 use crate::establish_connection;
 use crate::models::{Dev, NewDev};
 use crate::schema;
 
-#[get("/devs")]
-pub async fn index() -> Result<HttpResponse, Error> {
+pub async fn index() -> Result<impl warp::Reply, Rejection> {
     let conn = establish_connection();
     let devs = schema::devs::table.load::<Dev>(&conn)
-        .map_err(ErrorInternalServerError)?;
-    Ok(HttpResponse::Ok().json(devs))
+        .unwrap();
+
+    Ok(warp::reply::json(&devs))
 }
 
-#[post("/devs")]
-pub async fn store(input: Json<DevRequest>) -> Result<HttpResponse, Error> {
+pub async fn store(input: DevRequest) -> Result<impl warp::Reply, Rejection> {
     use schema::devs::dsl::github;
 
     let conn = establish_connection();
@@ -27,15 +24,15 @@ pub async fn store(input: Json<DevRequest>) -> Result<HttpResponse, Error> {
     if let Ok(dev) = schema::devs::table
         .filter(github.eq(&input.github))
         .first::<Dev>(&conn) {
-        return Ok(HttpResponse::Ok().json(&dev));
+        return Ok(warp::reply::json(&dev));
     }
 
+    let url = format!("https://api.github.com/users/{}", input.github);
     let github_user: GitHubUser = reqwest::Client::new()
-        .get(format!("https://api.github.com/users/{}", input.github).as_str())
+        .get(url.as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
-        .send().await.map_err(ErrorBadRequest)?
-        .json::<GitHubUser>()
-        .await.map_err(ErrorBadRequest)?;
+        .send().await.unwrap()
+        .json::<GitHubUser>().await.unwrap();
 
     let techs = crate::utils::csv_to_vec(input.techs.to_string());
 
@@ -52,7 +49,7 @@ pub async fn store(input: Json<DevRequest>) -> Result<HttpResponse, Error> {
     let dev = diesel::insert_into(schema::devs::table)
         .values(&new_dev)
         .get_result::<Dev>(&conn)
-        .map_err(ErrorInternalServerError)?;
+        .unwrap();
 
-    Ok(HttpResponse::Ok().json(&dev))
+    Ok(warp::reply::json(&dev))
 }

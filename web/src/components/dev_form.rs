@@ -42,10 +42,10 @@ impl Component for DevForm {
                 let request = Request::post("http://localhost:3333/devs")
                     .header("Content-Type", "application/json")
                     .body(NewDev {
-                        github: "".to_string(),
-                        techs: "".to_string(),
-                        lat: 0.0,
-                        lng: 0.0,
+                        github: "leocavalcante".to_string(),
+                        techs: "rust".to_string(),
+                        lat: 123.0,
+                        lng: 456.0,
                     })
                     .expect("Failed to build request.");
 
