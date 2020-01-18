@@ -1,5 +1,3 @@
-use std::convert::Infallible;
-
 use diesel::expression::sql_literal::sql;
 use diesel::prelude::*;
 use warp::Rejection;

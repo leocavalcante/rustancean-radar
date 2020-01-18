@@ -27,13 +27,12 @@ pub async fn store(input: DevRequest) -> Result<impl warp::Reply, Rejection> {
         return Ok(warp::reply::json(&dev));
     }
 
+    let url = format!("https://api.github.com/users/{}", input.github);
     let github_user: GitHubUser = reqwest::Client::new()
-        .get(format!("https://api.github.com/users/{}", input.github).as_str())
+        .get(url.as_str())
         .header(USER_AGENT, "github.com/leocavalcante/rustancean-radar")
-        .send().await
-        .unwrap()
-        .json::<GitHubUser>().await
-        .unwrap();
+        .send().await.unwrap()
+        .json::<GitHubUser>().await.unwrap();
 
     let techs = crate::utils::csv_to_vec(input.techs.to_string());
 
